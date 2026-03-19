@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Visit Planner">
+<meta name="theme-color" content="#2E9E5B">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Visit Planner — A Plus Healthcare at Home</title>
+<style>
+:root{
+  --green:#2E9E5B;--green-dark:#1B6B3A;--green-light:#8FCC9E;--green-bg:#E8F5E9;--green-card:#E0F2E6;
+  --gray-dark:#3A3A36;--gray-med:#7D7D73;--gray-body:#50504A;--gray-bg:#F5F5F3;
+  --card-bg:#FFFFFF;--border:#E0E0DC;
+  --red:#C62828;--red-bg:#FCE4E4;--amber:#E68A00;--amber-bg:#FEF3E0;--blue:#1565C0;--blue-bg:#E3F2FD;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;background:var(--gray-bg);color:var(--gray-dark);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+
+/* Header */
+.header{background:var(--green);color:#fff;padding:1.25rem 1rem .75rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.header h1{font-size:1.25rem;font-weight:700;letter-spacing:-.01em}
+.header p{font-size:.75rem;opacity:.85;margin-top:.15rem}
+
+/* Container */
+.container{max-width:800px;margin:0 auto;padding:.75rem}
+
+/* Cards */
+.card{background:var(--card-bg);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-title{font-size:.8rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+
+/* Form */
+.field{margin-bottom:.85rem}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:.75rem;font-weight:600;color:var(--gray-med);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.03em}
+select{width:100%;padding:.65rem .75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--gray-dark);font-size:.9rem;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%237D7D73' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;-webkit-appearance:none}
+select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(46,158,91,.15)}
+
+/* Checkbox grid */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+@media(max-width:400px){.check-grid{grid-template-columns:1fr}}
+.check-item{display:flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--gray-dark);cursor:pointer;padding:.3rem .1rem;border-radius:6px;transition:background .15s}
+.check-item:active{background:var(--green-bg)}
+.check-item input[type=checkbox]{width:1.15rem;height:1.15rem;accent-color:var(--green);border-radius:4px;flex-shrink:0}
+
+/* Generate button */
+.btn-generate{width:100%;padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:.01em;box-shadow:0 2px 8px rgba(46,158,91,.3);transition:all .2s;-webkit-tap-highlight-color:transparent}
+.btn-generate:active{transform:scale(.98);background:var(--green-dark)}
+
+/* Results */
+#results{margin-top:.5rem}
+
+/* Alerts */
+.alert{padding:.75rem .85rem;border-radius:10px;margin-bottom:.5rem;font-size:.82rem;line-height:1.45;display:flex;gap:.5rem;align-items:flex-start}
+.alert .icon{flex-shrink:0;font-size:1rem}
+.alert.red{background:var(--red-bg);color:var(--red);border:1px solid rgba(198,40,40,.15)}
+.alert.amber{background:var(--amber-bg);color:#8B5E00;border:1px solid rgba(230,138,0,.15)}
+.alert.blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(21,101,192,.12)}
+
+/* Summary pills */
+.summary{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.pill{background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;padding:.5rem .75rem;text-align:center;flex:1;min-width:60px;box-shadow:var(--shadow)}
+.pill.total{border-color:var(--green);background:var(--green-bg)}
+.pill .num{font-size:1.4rem;font-weight:800;color:var(--green)}
+.pill.total .num{color:var(--green-dark)}
+.pill .lbl{font-size:.6rem;text-transform:uppercase;color:var(--gray-med);font-weight:600;letter-spacing:.03em}
+
+/* Discipline cards */
+.disc-card{background:var(--card-bg);border-radius:var(--radius);margin-bottom:.5rem;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border)}
+.disc-header{display:flex;justify-content:space-between;align-items:center;padding:.75rem .85rem;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.disc-header:active{background:var(--gray-bg)}
+.disc-name{font-weight:700;font-size:.95rem;color:var(--gray-dark)}
+.disc-sub{font-size:.72rem;color:var(--gray-med)}
+.disc-badge{font-size:.75rem;font-weight:700;padding:.2rem .55rem;border-radius:6px;min-width:32px;text-align:center}
+.disc-badge.green{background:var(--green-bg);color:var(--green-dark)}
+.disc-badge.yellow{background:var(--amber-bg);color:var(--amber)}
+.disc-badge.red{background:var(--red-bg);color:var(--red)}
+.disc-body{padding:.75rem .85rem;display:none}
+.disc-body.open{display:block}
+.disc-row{margin-bottom:.6rem}
+.disc-row:last-child{margin-bottom:0}
+.disc-label{font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--gray-med);letter-spacing:.04em;margin-bottom:.15rem}
+.disc-value{font-size:.85rem;color:var(--gray-body);line-height:1.5}
+.disc-pattern{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.82rem;color:var(--green-dark);font-weight:600}
+
+/* 485 output */
+.f485-card{background:var(--green-bg);border:1.5px solid var(--green-light);border-radius:var(--radius);padding:.85rem;margin:.75rem 0}
+.f485-title{font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--green-dark);letter-spacing:.04em;margin-bottom:.4rem}
+.f485-text{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.85rem;color:var(--green-dark);white-space:pre-wrap;line-height:1.6}
+
+/* Action buttons */
+.actions{display:flex;gap:.5rem;margin:.75rem 0;flex-wrap:wrap}
+.btn-action{flex:1;min-width:120px;padding:.7rem .5rem;border:1.5px solid var(--border);background:var(--card-bg);border-radius:10px;font-size:.8rem;font-weight:600;color:var(--gray-dark);cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn-action:active{background:var(--gray-bg);transform:scale(.98)}
+.btn-action.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-action.primary:active{background:var(--green-dark)}
+
+/* Notes */
+.notes{font-size:.75rem;color:var(--gray-med);line-height:1.6;padding:.75rem 0}
+.notes h3{color:var(--gray-dark);font-size:.85rem;margin-bottom:.4rem}
+.notes li{margin-bottom:.2rem}
+.notes strong{color:var(--gray-body)}
+
+/* Print */
+@media print{
+  .header,.btn-generate,.actions,.check-grid,.field select{display:none!important}
+  body{background:#fff;padding:0}
+  .card{box-shadow:none;border:1px solid #ddd}
+  .disc-body{display:block!important}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gray-dark);color:#fff;padding:.7rem 1.25rem;border-radius:10px;font-size:.85rem;font-weight:600;z-index:200;transition:transform .3s ease;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏥 Visit Planner</h1>
+  <p>CMS Guidelines · PDGM · OASIS-E — A Plus Healthcare at Home</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-title">🩺 Patient Assessment</div>
+    <div class="field">
+      <label>Primary Diagnosis</label>
+      <select id="diagnosis">
+        <option value="">Select diagnosis...</option>
+        <optgroup label="Cardiac">
+          <option value="chf">CHF (Heart Failure)</option>
+          <option value="cad">Coronary Artery Disease</option>
+          <option value="post_mi">Post-Myocardial Infarction</option>
+          <option value="afib">Atrial Fibrillation</option>
+          <option value="htn">Hypertension (uncontrolled)</option>
+          <option value="post_cabg">Post-CABG / Valve Replacement</option>
+        </optgroup>
+        <optgroup label="Pulmonary">
+          <option value="copd">COPD</option>
+          <option value="pneumonia">Pneumonia</option>
+          <option value="pe">Pulmonary Embolism</option>
+          <option value="post_thoracic">Post-Thoracic Surgery</option>
+        </optgroup>
+        <optgroup label="Neurological">
+          <option value="cva">Stroke / CVA</option>
+          <option value="parkinsons">Parkinson's Disease</option>
+          <option value="ms">Multiple Sclerosis</option>
+          <option value="tbi">Traumatic Brain Injury</option>
+          <option value="sci">Spinal Cord Injury</option>
+          <option value="neuropathy">Neuropathy</option>
+        </optgroup>
+        <optgroup label="Orthopedic">
+          <option value="thr">Total Hip Replacement</option>
+          <option value="tkr">Total Knee Replacement</option>
+          <option value="hip_fx">Hip Fracture / ORIF</option>
+          <option value="spinal_fusion">Spinal Fusion</option>
+          <option value="rotator_cuff">Rotator Cuff Repair</option>
+          <option value="amputation">Amputation</option>
+        </optgroup>
+        <optgroup label="Wound Care">
+          <option value="surgical_wound">Surgical Wound</option>
+          <option value="diabetic_ulcer">Diabetic Ulcer</option>
+          <option value="pressure_injury">Pressure Injury</option>
+          <option value="venous_ulcer">Venous Stasis Ulcer</option>
+          <option value="wound_vac">Wound VAC</option>
+        </optgroup>
+        <optgroup label="Endocrine">
+          <option value="dm_new_insulin">Diabetes — New Insulin Start</option>
+          <option value="dm_uncontrolled">Diabetes — Uncontrolled</option>
+          <option value="dm_complications">Diabetic Complications</option>
+        </optgroup>
+        <optgroup label="Post-Cardiac Procedure">
+          <option value="post_pacer">Post-Pacemaker</option>
+          <option value="post_stent">Post-Stent / PCI</option>
+          <option value="post_cath">Post-Cardiac Catheterization</option>
+        </optgroup>
+        <optgroup label="Infections / IV Therapy">
+          <option value="cellulitis">Cellulitis</option>
+          <option value="osteo">Osteomyelitis</option>
+          <option value="sepsis_recovery">UTI / Sepsis Recovery</option>
+          <option value="iv_abx">PICC Line / IV Antibiotics</option>
+        </optgroup>
+        <optgroup label="GI">
+          <option value="ostomy">Colostomy / Ileostomy Care</option>
+          <option value="post_bowel">Post-Bowel Surgery</option>
+          <option value="dysphagia_gi">Dysphagia</option>
+          <option value="tpn">TPN / Tube Feeding</option>
+        </optgroup>
+        <optgroup label="Debility / Deconditioning">
+          <option value="debility">Post-Hospitalization Debility</option>
+          <option value="weakness">Generalized Weakness</option>
+          <option value="falls">Falls / Recurrent Falls</option>
+        </optgroup>
+        <optgroup label="Psychiatric">
+          <option value="depression">Depression with Functional Decline</option>
+          <option value="psych_meds">Psychiatric Medication Management</option>
+        </optgroup>
+        <optgroup label="Renal">
+          <option value="ckd">CKD Management</option>
+          <option value="post_dialysis">Post-Dialysis Access</option>
+          <option value="fluid_mgmt">Fluid Management</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>PDGM Clinical Grouping</label>
+      <select id="pdgm">
+        <option value="">Auto from diagnosis</option>
+        <option value="msk_rehab">Musculoskeletal Rehab</option>
+        <option value="neuro_rehab">Neuro / Stroke Rehab</option>
+        <option value="wound">Wound Care</option>
+        <option value="complex_nursing">Complex Nursing</option>
+        <option value="behavioral">Behavioral Health</option>
+        <option value="mmta_surgical">MMTA — Surgical Aftercare</option>
+        <option value="mmta_cardiac">MMTA — Cardiac / Endocrine</option>
+        <option value="mmta_gi">MMTA — GI / GU</option>
+        <option value="mmta_id">MMTA — Infectious Disease</option>
+        <option value="mmta_resp">MMTA — Respiratory</option>
+        <option value="mmta_other">MMTA — Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Admission Source</label>
+      <select id="admission">
+        <option value="institutional">Institutional (hospital/SNF ≤14 days)</option>
+        <option value="community">Community (no recent hospitalization)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>30-Day Period</label>
+      <select id="timing">
+        <option value="early">Early (Days 1–30)</option>
+        <option value="late">Late (Days 31–60)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Functional Impairment</label>
+      <select id="functional">
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Homebound Reason</label>
+      <select id="homebound">
+        <option value="device">Assistive device + taxing effort</option>
+        <option value="person">Requires assistance of another person</option>
+        <option value="condition">Condition restricts leaving</option>
+        <option value="contraindication">Medical contraindication</option>
+        <option value="cognitive">Cognitive impairment / safety</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚕️ Comorbidities</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" value="diabetes"> Diabetes</label>
+      <label class="check-item"><input type="checkbox" value="wound"> Wound care needed</label>
+      <label class="check-item"><input type="checkbox" value="fall_risk"> Fall risk (2+ falls)</label>
+      <label class="check-item"><input type="checkbox" value="dysphagia"> Dysphagia</label>
+      <label class="check-item"><input type="checkbox" value="depression"> Depression / Anxiety</label>
+      <label class="check-item"><input type="checkbox" value="pain"> Pain management</label>
+      <label class="check-item"><input type="checkbox" value="incontinence"> Incontinence</label>
+      <label class="check-item"><input type="checkbox" value="cognitive"> Cognitive impairment</label>
+      <label class="check-item"><input type="checkbox" value="polypharmacy"> 10+ meds / high-risk</label>
+      <label class="check-item"><input type="checkbox" value="lives_alone"> Lives alone</label>
+      <label class="check-item"><input type="checkbox" value="limited_cg"> Limited caregiver</label>
+      <label class="check-item"><input type="checkbox" value="post_surgical"> Post-surgical</label>
+      <label class="check-item"><input type="checkbox" value="picc"> PICC / IV therapy</label>
+      <label class="check-item"><input type="checkbox" value="o2"> Oxygen dependent</label>
+      <label class="check-item"><input type="checkbox" value="foley"> Foley catheter</label>
+    </div>
+  </div>
+
+  <button class="btn-generate" onclick="generate()">Generate Visit Plan</button>
+
+  <div id="results"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Register service worker
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+
+// Toast
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+// PDGM mapping
+const DX_PDGM={chf:'mmta_cardiac',cad:'mmta_cardiac',post_mi:'mmta_cardiac',afib:'mmta_cardiac',htn:'mmta_cardiac',post_cabg:'mmta_surgical',copd:'mmta_resp',pneumonia:'mmta_resp',pe:'mmta_resp',post_thoracic:'mmta_surgical',cva:'neuro_rehab',parkinsons:'neuro_rehab',ms:'neuro_rehab',tbi:'neuro_rehab',sci:'neuro_rehab',neuropathy:'neuro_rehab',thr:'msk_rehab',tkr:'msk_rehab',hip_fx:'msk_rehab',spinal_fusion:'msk_rehab',rotator_cuff:'msk_rehab',amputation:'msk_rehab',surgical_wound:'wound',diabetic_ulcer:'wound',pressure_injury:'wound',venous_ulcer:'wound',wound_vac:'wound',dm_new_insulin:'mmta_cardiac',dm_uncontrolled:'mmta_cardiac',dm_complications:'mmta_cardiac',post_pacer:'mmta_surgical',post_stent:'mmta_surgical',post_cath:'mmta_surgical',cellulitis:'mmta_id',osteo:'mmta_id',sepsis_recovery:'mmta_id',iv_abx:'mmta_id',ostomy:'mmta_gi',post_bowel:'mmta_gi',dysphagia_gi:'mmta_gi',tpn:'mmta_gi',debility:'mmta_other',weakness:'mmta_other',falls:'mmta_other',depression:'behavioral',psych_meds:'behavioral',ckd:'mmta_other',post_dialysis:'mmta_other',fluid_mgmt:'mmta_other'};
+
+const LUPA={msk_rehab:{early:6,late:4},neuro_rehab:{early:6,late:4},wound:{early:6,late:4},complex_nursing:{early:5,late:3},behavioral:{early:4,late:3},mmta_surgical:{early:5,late:3},mmta_cardiac:{early:5,late:3},mmta_gi:{early:5,late:3},mmta_id:{early:5,late:3},mmta_resp:{early:5,late:3},mmta_other:{early:4,late:3}};
+
+document.getElementById('diagnosis').addEventListener('change',function(){
+  const p=DX_PDGM[this.value];if(p)document.getElementById('pdgm').value=p;
+});
+
+function getComorb(){return[...document.querySelectorAll('.check-grid input:checked')].map(c=>c.value);}
+
+function generate(){
+  const dx=document.getElementById('diagnosis').value;
+  if(!dx){toast('Select a diagnosis first');return;}
+  const pdgm=document.getElementById('pdgm').value||DX_PDGM[dx]||'mmta_other';
+  const admission=document.getElementById('admission').value;
+  const timing=document.getElementById('timing').value;
+  const functional=document.getElementById('functional').value;
+  const comorb=getComorb();
+  const plan=buildPlan(dx,pdgm,admission,timing,functional,comorb);
+  const warnings=buildWarnings(dx,pdgm,timing,plan,comorb);
+  renderResults(plan,warnings,pdgm,timing);
+}
+
+function buildPlan(dx,pdgm,admission,timing,functional,comorb){
+  const inst=admission==='institutional',early=timing==='early',highFunc=functional==='high',medFunc=functional==='medium';
+  const acuityMult=inst?1.2:1,funcMult=highFunc?1.3:medFunc?1:0.8,timeMult=early?1:0.6;
+  let plan=[];
+
+  const snDx={
+    chf:{b:12,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'CHF symptom management, daily weight monitoring, medication titration, dietary education per CMS CoP §484.60',o:'M1800-M1860, M2001, M2401',s:'Skilled assessment of cardiopulmonary status, HF medication teaching, fluid balance monitoring, decompensation recognition'},
+    cad:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Post-cardiac event management, medication education',o:'M1800-M1860, M2001',s:'Cardiac assessment, medication management, activity progression education'},
+    post_mi:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-MI recovery monitoring per CMS CoP §484.60',o:'M1800-M1860, M2001, M2401',s:'Cardiac assessment, medication titration, cardiac rehab education'},
+    afib:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Anticoagulation management, rate/rhythm monitoring',o:'M2001, M2003',s:'INR/anticoagulation management, medication teaching, pulse assessment'},
+    htn:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'BP management, medication adjustment monitoring',o:'M2001',s:'BP monitoring, antihypertensive medication teaching'},
+    post_cabg:{b:12,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-surgical assessment, wound/sternal precautions',o:'M1340-M1342, M2001',s:'Surgical site assessment, sternal precautions, pain/medication management'},
+    copd:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Respiratory management, exacerbation prevention per CMS CoP §484.60',o:'M1400, M2001, M2401',s:'Respiratory assessment, O2 management, inhaler technique, action plan education'},
+    pneumonia:{b:8,p:'3x/wk×1wk, 2x/wk×1wk, 1x/wk×2wk',r:'Acute respiratory recovery, antibiotic compliance',o:'M1400, M2001',s:'Respiratory assessment, antibiotic teaching, hydration status'},
+    pe:{b:8,p:'3x/wk×1wk, 2x/wk×2wk, 1x/wk×1wk',r:'Anticoagulation management, cardiopulmonary monitoring',o:'M1400, M2001',s:'Cardiopulmonary assessment, anticoagulation teaching'},
+    post_thoracic:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-surgical thoracic recovery',o:'M1340-M1342, M1400',s:'Surgical/chest tube site assessment, respiratory management, pain assessment'},
+    cva:{b:10,p:'3x/wk×2wk, 2x/wk×2wk',r:'Post-stroke monitoring, neuro checks per CMS CoP',o:'M1700-M1730, M1800-M1860, M2001',s:'Neurological assessment, medication management, fall prevention, caregiver education'},
+    parkinsons:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Disease management, medication timing critical',o:'M1700-M1730, M1800-M1860, M2001',s:'Neurological assessment, medication management (timing critical), fall risk'},
+    ms:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Symptom management, disease-modifying therapy',o:'M1700-M1730, M1800-M1860',s:'Neurological assessment, fatigue management, injection teaching'},
+    tbi:{b:10,p:'3x/wk×2wk, 2x/wk×2wk',r:'Post-TBI recovery, cognitive/safety assessment',o:'M1700-M1730, M1800-M1860',s:'Neurological assessment, cognitive assessment, safety evaluation'},
+    sci:{b:10,p:'3x/wk×2wk, 2x/wk×2wk',r:'SCI management, skin integrity, autonomic dysreflexia prevention',o:'M1300-M1342, M1800-M1860',s:'Skin/wound assessment, bowel/bladder program, dysreflexia education'},
+    neuropathy:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Neuropathy management, foot care education',o:'M1800-M1860, M2001',s:'Peripheral neurological assessment, foot care, fall prevention'},
+    thr:{b:8,p:'3x/wk×1wk, 2x/wk×1wk, 1x/wk×2wk',r:'Post-surgical joint replacement care',o:'M1340-M1342, M1800-M1860',s:'Surgical site assessment, DVT prophylaxis, pain management, hip precautions'},
+    tkr:{b:8,p:'3x/wk×1wk, 2x/wk×1wk, 1x/wk×2wk',r:'Post-surgical knee replacement care',o:'M1340-M1342, M1800-M1860',s:'Surgical site assessment, DVT prophylaxis, pain management, ROM monitoring'},
+    hip_fx:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-fracture repair, higher fall risk',o:'M1340-M1342, M1800-M1860',s:'Surgical site, weight-bearing status, pain management, fall prevention'},
+    spinal_fusion:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-spinal surgery, incision care',o:'M1340-M1342, M1800-M1860',s:'Surgical site, spinal precautions, pain management, neuro checks'},
+    rotator_cuff:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Post-surgical shoulder repair',o:'M1340-M1342, M1800-M1860',s:'Surgical site assessment, pain management, sling education'},
+    amputation:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-amputation wound care, prosthetic preparation',o:'M1340-M1342, M1800-M1860',s:'Residual limb assessment, wound care, phantom pain management'},
+    surgical_wound:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Wound assessment/treatment per CMS CoP §484.60',o:'M1340-M1342',s:'Wound assessment with measurements, wound care per order, infection monitoring'},
+    diabetic_ulcer:{b:12,p:'3x/wk×3wk, 2x/wk×1wk',r:'Diabetic wound management, infection prevention',o:'M1340-M1342, M2001',s:'Wound care, vascular assessment, glucose correlation, offloading education'},
+    pressure_injury:{b:12,p:'3x/wk×3wk, 2x/wk×1wk',r:'Pressure injury staging/treatment per NPUAP/CMS',o:'M1306-M1342',s:'Wound care per staging, repositioning, nutrition, support surface evaluation'},
+    venous_ulcer:{b:10,p:'3x/wk×2wk, 2x/wk×2wk',r:'Venous ulcer management, compression therapy',o:'M1340-M1342',s:'Wound care, compression, edema management, elevation teaching'},
+    wound_vac:{b:14,p:'3x/wk×4wk + PRN',r:'Wound VAC changes per manufacturer/MD order',o:'M1340-M1342',s:'VAC dressing changes, wound measurement, negative pressure verification'},
+    dm_new_insulin:{b:12,p:'Daily×1wk, 3x/wk×1wk, 2x/wk×1wk, 1x/wk×1wk',r:'New insulin start — intensive teaching per CMS CoP §484.60',o:'M2001, M2003, M2401',s:'Insulin teaching, BG monitoring, hypoglycemia recognition, dietary education'},
+    dm_uncontrolled:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Uncontrolled DM — medication adjustment monitoring',o:'M2001, M2003',s:'BG monitoring, medication management, dietary review'},
+    dm_complications:{b:10,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'DM complication management',o:'M2001, M1340-M1342, M1800-M1860',s:'Complication-specific assessment, foot care, wound care'},
+    post_pacer:{b:6,p:'3x/wk×1wk, 1x/wk×3wk',r:'Post-pacemaker site assessment',o:'M1340-M1342, M2001',s:'Insertion site, rhythm monitoring, activity restrictions'},
+    post_stent:{b:6,p:'3x/wk×1wk, 1x/wk×3wk',r:'Post-PCI assessment, medication management',o:'M2001',s:'Access site, antiplatelet teaching, cardiac assessment'},
+    post_cath:{b:4,p:'2x/wk×1wk, 1x/wk×2wk',r:'Post-cath site monitoring',o:'M2001',s:'Access site, activity progression, medication teaching'},
+    cellulitis:{b:8,p:'Daily×3-5d then 2x/wk×2wk',r:'Infection monitoring, antibiotic management',o:'M2001',s:'Wound/infection assessment, antibiotic teaching, lab coordination'},
+    osteo:{b:14,p:'Daily-BID for IV abx',r:'Long-term antibiotic therapy per CMS CoP',o:'M2001, M1340-M1342',s:'IV antibiotic administration, PICC care, wound assessment, labs'},
+    sepsis_recovery:{b:8,p:'3x/wk×2wk, 2x/wk×1wk, 1x/wk×1wk',r:'Post-sepsis recovery monitoring',o:'M2001, M1800-M1860',s:'Vital signs, antibiotic compliance, functional recovery'},
+    iv_abx:{b:14,p:'Daily-BID per infusion schedule',r:'IV antibiotic infusion, PICC maintenance per CMS CoP',o:'M2001',s:'IV administration, PICC care, line patency, lab draws'},
+    ostomy:{b:8,p:'3x/wk×2wk, 1x/wk×2wk',r:'New ostomy care and education',o:'M1340-M1342, M1800-M1860',s:'Ostomy assessment, appliance teaching, skin care'},
+    post_bowel:{b:8,p:'3x/wk×1wk, 2x/wk×1wk, 1x/wk×2wk',r:'Post-surgical GI recovery',o:'M1340-M1342, M2001',s:'Surgical site, bowel function, diet advancement'},
+    dysphagia_gi:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Dysphagia management, aspiration prevention',o:'M1700-M1730',s:'Aspiration precautions, diet consistency, feeding assessment'},
+    tpn:{b:14,p:'Daily for TPN administration',r:'TPN/enteral feeding management per CMS CoP',o:'M2001',s:'TPN administration, line care, lab monitoring'},
+    debility:{b:8,p:'2x/wk×3wk, 1x/wk×1wk',r:'Post-hospitalization recovery',o:'M1800-M1860, M2001',s:'Comprehensive assessment, med reconciliation, fall prevention'},
+    weakness:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Generalized weakness management',o:'M1800-M1860',s:'Functional assessment, underlying cause evaluation, med review'},
+    falls:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Fall risk management',o:'M1800-M1860, GG items',s:'Fall risk assessment, environmental safety, med review'},
+    depression:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Psychiatric nursing, medication management',o:'M1700-M1730, M2001, PHQ-2/9',s:'Mental status, medication management, PHQ screening, safety'},
+    psych_meds:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Psychiatric medication management',o:'M2001, M2003, M1700-M1730',s:'Medication management, side effects, adherence, mental status'},
+    ckd:{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'CKD management, diet/fluid teaching',o:'M2001',s:'Renal function monitoring, dietary teaching, fluid management'},
+    post_dialysis:{b:6,p:'3x/wk×1wk, 1x/wk×3wk',r:'Dialysis access site management',o:'M2001',s:'Access site assessment, infection monitoring, vitals'},
+    fluid_mgmt:{b:8,p:'2x/wk×2wk, 1x/wk×2wk',r:'Fluid balance management',o:'M2001',s:'Weight monitoring, edema assessment, I&O teaching'}
+  };
+
+  const snData=snDx[dx]||{b:6,p:'2x/wk×2wk, 1x/wk×2wk',r:'Skilled nursing assessment per CMS CoP §484.60',o:'M1800-M1860, M2001',s:'Comprehensive assessment, medication management, teaching'};
+  let snV=Math.round(snData.b*acuityMult*funcMult*timeMult);
+  snV=Math.max(2,Math.min(snV,early?18:10));
+  plan.push({disc:'SN',name:'Skilled Nursing',visits:snV,pattern:early?snData.p:reducePat(snData.p),rationale:snData.r,oasis:snData.o,skilled:snData.s,level:snV>=10?'red':snV>=6?'yellow':'green'});
+
+  // PT
+  const ptH=['thr','tkr','hip_fx','spinal_fusion','rotator_cuff','amputation','cva','tbi','sci','falls','debility','weakness','parkinsons','ms'];
+  const ptM=['chf','copd','post_cabg','post_thoracic','post_mi','neuropathy','post_bowel'];
+  let ptN=false,ptB=0,ptP='',ptR='',ptS='';
+  if(ptH.includes(dx)){ptN=true;ptB=early?14:8;ptP=early?'5x/wk×2wk, 3x/wk×1wk, 2x/wk×1wk':'3x/wk×2wk, 2x/wk×2wk';ptR='Rehab: gait, strengthening, balance, mobility per CMS CoP §484.60';ptS='Therapeutic exercise, gait training, balance, transfers, HEP';}
+  else if(ptM.includes(dx)){ptN=true;ptB=early?8:4;ptP=early?'3x/wk×2wk, 1x/wk×2wk':'2x/wk×2wk, 1x/wk×2wk';ptR='Functional mobility, activity progression, fall prevention';ptS='Activity tolerance, energy conservation, safety, HEP';}
+  if(comorb.includes('fall_risk')&&!ptN){ptN=true;ptB=early?8:4;ptP=early?'2x/wk×3wk, 1x/wk×1wk':'2x/wk×2wk, 1x/wk×2wk';ptR='Fall risk — balance/gait intervention per CMS CoP';ptS='Balance, gait training, strengthening, env safety, HEP';}
+  else if(comorb.includes('fall_risk')&&ptN){ptB=Math.round(ptB*1.2);}
+  if(ptN){let v=Math.round(ptB*funcMult*(inst?1.1:1));v=Math.max(2,Math.min(v,early?20:12));plan.push({disc:'PT',name:'Physical Therapy',visits:v,pattern:ptP,rationale:ptR,oasis:'GG0130-GG0170',skilled:ptS,level:v>=12?'red':v>=6?'yellow':'green'});}
+
+  // OT
+  const otH=['cva','tbi','sci','thr','tkr','hip_fx','amputation','spinal_fusion','rotator_cuff','parkinsons','ms'];
+  const otM=['debility','weakness','falls','copd','chf','post_cabg'];
+  let otN=false,otB=0,otP='',otR='',otS='';
+  if(otH.includes(dx)){otN=true;otB=early?10:6;otP=early?'3x/wk×2wk, 2x/wk×2wk':'2x/wk×2wk, 1x/wk×2wk';otR='ADL training, adaptive equipment, home safety per CMS CoP';otS='ADL training, adaptive equipment, energy conservation, home safety, UE strengthening';}
+  else if(otM.includes(dx)){otN=true;otB=early?6:3;otP=early?'2x/wk×2wk, 1x/wk×2wk':'1x/wk×3wk';otR='ADL retraining, energy conservation, home safety';otS='ADL retraining, energy conservation, home safety, adaptive equipment';}
+  if(comorb.includes('cognitive')&&!otN){otN=true;otB=early?6:3;otP=early?'2x/wk×2wk, 1x/wk×2wk':'1x/wk×3wk';otR='Cognitive-functional assessment, safety strategies';otS='Cognitive-functional assessment, safety strategies, routine, caregiver training';}
+  if(otN){let v=Math.round(otB*funcMult*(inst?1.1:1));v=Math.max(2,Math.min(v,early?16:10));plan.push({disc:'OT',name:'Occupational Therapy',visits:v,pattern:otP,rationale:otR,oasis:'GG0130-GG0170',skilled:otS,level:v>=8?'red':v>=4?'yellow':'green'});}
+
+  // SLP
+  const slpD=['cva','tbi','parkinsons','dysphagia_gi'];
+  let slpN=false,slpB=0,slpP='',slpR='',slpS='';
+  if(slpD.includes(dx)){slpN=true;slpB=early?8:4;slpP=early?'3x/wk×2wk, 1x/wk×2wk':'2x/wk×2wk';slpR='Speech-language/swallowing therapy per CMS CoP';slpS='Swallow assessment, speech therapy, cognitive-linguistic therapy, diet texture';}
+  if(comorb.includes('dysphagia')&&!slpN){slpN=true;slpB=early?6:3;slpP=early?'2x/wk×2wk, 1x/wk×2wk':'1x/wk×3wk';slpR='Dysphagia management, aspiration prevention';slpS='Swallow assessment, diet texture, aspiration precautions, oral motor exercises';}
+  if(slpN){let v=Math.round(slpB*funcMult);v=Math.max(2,Math.min(v,early?12:8));plan.push({disc:'SLP',name:'Speech-Language Path',visits:v,pattern:slpP,rationale:slpR,oasis:'M1230, GG items',skilled:slpS,level:v>=6?'yellow':'green'});}
+
+  // MSW
+  if(comorb.includes('depression')||comorb.includes('lives_alone')||comorb.includes('limited_cg')||dx==='depression'||dx==='psych_meds'){
+    plan.push({disc:'MSW',name:'Medical Social Worker',visits:early?4:2,pattern:early?'1x/wk×4wk':'1x/2wk×4wk',rationale:'Psychosocial assessment, community resources per CMS CoP §484.60',oasis:'M1700-M1730, M2401',skilled:'Psychosocial assessment, community resources, advance directives, caregiver support',level:'green'});
+  }else if(comorb.includes('cognitive')||functional==='high'){
+    plan.push({disc:'MSW',name:'Medical Social Worker',visits:early?2:1,pattern:early?'1x/2wk×4wk':'1x/mo',rationale:'Resource coordination, discharge planning',oasis:'M2401',skilled:'Community resources, caregiver assessment, advance care planning',level:'green'});
+  }
+
+  // HHA
+  if(functional==='high'||(functional==='medium'&&(comorb.includes('lives_alone')||comorb.includes('limited_cg')))){
+    plan.push({disc:'HHA',name:'Home Health Aide',visits:early?12:8,pattern:early?'3x/wk×4wk':'2x/wk×4wk',rationale:'ADL assistance — requires open skilled discipline (CMS CoP §484.70, RN supervision q14d)',oasis:'M1800-M1860',skilled:'Personal care, bathing, grooming, ambulation. NOT skilled — requires open SN/PT/OT/SLP.',level:'green'});
+  }else if(comorb.includes('incontinence')){
+    plan.push({disc:'HHA',name:'Home Health Aide',visits:early?8:6,pattern:early?'2x/wk×4wk':'2x/wk×3wk',rationale:'Personal care, incontinence — requires open skilled service',oasis:'M1800-M1860',skilled:'Personal care, incontinence care. Requires open skilled service.',level:'green'});
+  }
+
+  // Comorbidity add-ons
+  const sn=plan.find(p=>p.disc==='SN');
+  if(sn){
+    if(comorb.includes('picc')&&dx!=='iv_abx'&&dx!=='osteo'){sn.visits=Math.min(sn.visits+4,18);sn.skilled+=', PICC care/flushing, IV meds';}
+    if(comorb.includes('wound')&&!['surgical_wound','diabetic_ulcer','pressure_injury','venous_ulcer','wound_vac'].includes(dx)){sn.visits=Math.min(sn.visits+3,18);sn.skilled+=', wound care';}
+    if(comorb.includes('polypharmacy')){sn.visits=Math.min(sn.visits+2,18);sn.skilled+=', high-risk med management (10+ meds)';}
+    if(comorb.includes('o2')&&dx!=='copd'){sn.skilled+=', O2 management teaching';}
+    if(comorb.includes('foley')){sn.skilled+=', Foley care, UTI prevention';}
+    if(comorb.includes('diabetes')&&!['dm_new_insulin','dm_uncontrolled','dm_complications'].includes(dx)){sn.visits=Math.min(sn.visits+2,18);sn.skilled+=', DM management, BG monitoring';}
+    if(comorb.includes('pain')){sn.skilled+=', pain assessment/management';}
+    sn.level=sn.visits>=10?'red':sn.visits>=6?'yellow':'green';
+  }
+  return plan;
+}
+
+function reducePat(p){return p.replace(/(\d+)x\/wk/g,(m,n)=>{const r=Math.max(1,Math.ceil(parseInt(n)*0.6));return r+'x/wk';});}
+
+function buildWarnings(dx,pdgm,timing,plan,comorb){
+  const w=[],early=timing==='early',lupa=LUPA[pdgm]||{early:5,late:3},threshold=early?lupa.early:lupa.late;
+  const total=plan.reduce((s,p)=>s+p.visits,0);
+  w.push({type:'blue',icon:'📋',text:'Homebound status must be documented at each visit and on 485 (42 CFR §409.42).'});
+  w.push({type:'blue',icon:'👨‍⚕️',text:'F2F encounter required within 90 days prior to or 30 days after SOC (42 CFR §424.22).'});
+  if(total<=threshold)w.push({type:'red',icon:'⚠️',text:`LUPA WARNING: ${total} visits ≤ threshold (${threshold}) for ${pdgm.replace(/_/g,' ').toUpperCase()}. Per-visit payment instead of full episode.`});
+  else if(total<=threshold+2)w.push({type:'amber',icon:'⚡',text:`Near LUPA: ${total} visits vs ${threshold} threshold. Monitor closely.`});
+  if(plan.some(p=>p.disc==='HHA')&&!plan.some(p=>['SN','PT','OT','SLP'].includes(p.disc)))w.push({type:'red',icon:'🚫',text:'HHA requires open skilled service.'});
+  if(plan.some(p=>p.disc==='HHA'))w.push({type:'amber',icon:'📝',text:'HHA supervisory visit by RN every 14 days (42 CFR §484.80).'});
+  if(!plan.some(p=>p.disc==='SN')&&plan.some(p=>['PT','OT','SLP'].includes(p.disc)))w.push({type:'amber',icon:'⚖️',text:'Therapy-only: document per Jimmo v. Sebelius — skilled need for maintenance.'});
+  if(['debility','weakness','falls'].includes(dx))w.push({type:'amber',icon:'📄',text:'Debility dx: document specific underlying cause, measurable goals, skilled need.'});
+  if(dx==='iv_abx'||dx==='osteo'||comorb.includes('picc'))w.push({type:'blue',icon:'💉',text:'IV/PICC: orders must include drug, dose, route, frequency, duration, lab schedule.'});
+  w.push({type:'blue',icon:'📊',text:`PDGM: ${pdgm.replace(/_/g,' ').toUpperCase()} | LUPA threshold: ${threshold} | Document skilled need every visit.`});
+  return w;
+}
+
+function renderResults(plan,warnings,pdgm,timing){
+  const total=plan.reduce((s,p)=>s+p.visits,0);
+  const el=document.getElementById('results');
+  let h='';
+
+  // Warnings
+  warnings.forEach(w=>{h+=`<div class="alert ${w.type}"><span class="icon">${w.icon}</span><span>${w.text}</span></div>`;});
+
+  // Summary pills
+  h+=`<div class="summary"><div class="pill total"><div class="num">${total}</div><div class="lbl">Total / 30d</div></div>`;
+  plan.forEach(p=>{h+=`<div class="pill"><div class="num">${p.visits}</div><div class="lbl">${p.disc}</div></div>`;});
+  h+=`</div>`;
+
+  // Discipline cards (expandable)
+  plan.forEach((p,i)=>{
+    h+=`<div class="disc-card"><div class="disc-header" onclick="toggleDisc(${i})"><div><div class="disc-name">${p.disc}</div><div class="disc-sub">${p.name}</div></div><div style="display:flex;align-items:center;gap:.5rem"><span class="disc-badge ${p.level}">${p.visits}</span><span style="font-size:.8rem;color:var(--gray-med)" id="chevron-${i}">▸</span></div></div>`;
+    h+=`<div class="disc-body" id="disc-${i}">`;
+    h+=`<div class="disc-row"><div class="disc-label">Pattern</div><div class="disc-pattern">${p.pattern}</div></div>`;
+    h+=`<div class="disc-row"><div class="disc-label">Rationale</div><div class="disc-value">${p.rationale}</div></div>`;
+    h+=`<div class="disc-row"><div class="disc-label">OASIS Items</div><div class="disc-value" style="font-family:monospace;font-size:.8rem">${p.oasis}</div></div>`;
+    h+=`<div class="disc-row"><div class="disc-label">Skilled Need</div><div class="disc-value">${p.skilled}</div></div>`;
+    h+=`</div></div>`;
+  });
+
+  // 485 format
+  const f485=plan.map(p=>{
+    const parts=p.pattern.match(/(\d+)x\/wk×(\d+)wk/g);
+    if(!parts)return `${p.disc} ${p.visits} visits/30d`;
+    return `${p.disc} `+parts.map(pt=>{const m=pt.match(/(\d+)x\/wk×(\d+)wk/);return m?`${m[1]}W${m[2]}`:pt;}).join(' ');
+  }).join('\n');
+  h+=`<div class="f485-card"><div class="f485-title">485 Visit Frequency</div><div class="f485-text" id="f485">${f485}</div></div>`;
+
+  // Buttons
+  h+=`<div class="actions">
+    <button class="btn-action primary" onclick="copy485()">📄 Copy 485</button>
+    <button class="btn-action" onclick="copyAll()">📋 Copy Full Plan</button>
+    <button class="btn-action" onclick="window.print()">🖨️ Print</button>
+  </div>`;
+
+  // Hidden text
+  const tv=plan.map(p=>`${p.disc} (${p.name}): ${p.visits}/30d — ${p.pattern}\nRationale: ${p.rationale}\nSkilled: ${p.skilled}\nOASIS: ${p.oasis}`).join('\n\n');
+  h+=`<textarea id="text-all" style="position:absolute;left:-9999px">${tv}</textarea>`;
+
+  // Notes
+  h+=`<div class="notes"><h3>📚 CMS References</h3><ul>
+    <li><strong>42 CFR §484</strong> — HHA Conditions of Participation</li>
+    <li><strong>42 CFR §409.42-44</strong> — Covered services, homebound definition</li>
+    <li><strong>42 CFR §424.22</strong> — Face-to-face requirements</li>
+    <li><strong>PDGM (CMS-1689-FC)</strong> — Patient-Driven Groupings Model</li>
+    <li><strong>OASIS-E/E1</strong> — Assessment items for clinical grouping</li>
+    <li><strong>Jimmo v. Sebelius (2013)</strong> — Maintenance therapy coverage</li>
+    <li><strong>Medicare Benefit Policy Manual Ch. 7</strong></li>
+  </ul>
+  <p style="margin-top:.5rem"><strong>Disclaimer:</strong> Clinical decision support only. Individualize based on assessment, physician orders, and clinical judgment. Document skilled need for every visit.</p></div>`;
+
+  el.innerHTML=h;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+function toggleDisc(i){
+  const b=document.getElementById('disc-'+i);
+  const c=document.getElementById('chevron-'+i);
+  const open=b.classList.toggle('open');
+  c.textContent=open?'▾':'▸';
+}
+function copy485(){const el=document.getElementById('f485');if(el)navigator.clipboard.writeText(el.textContent).then(()=>toast('485 format copied!')).catch(()=>toast('Copy failed'));}
+function copyAll(){const ta=document.getElementById('text-all');if(ta)navigator.clipboard.writeText(ta.value).then(()=>toast('Full plan copied!')).catch(()=>toast('Copy failed'));}
+</script>
+</body>
+</html>
